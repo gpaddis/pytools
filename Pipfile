@@ -1,13 +1,13 @@
 [[source]]
+name = "pypi"
 verify_ssl = true
 url = "https://pypi.org/simple"
-name = "pypi"
-
-[dev-packages]
-pylint = "*"
 
 [requires]
-python_version = "3.5"
+python_version = "2.7"
+
+[dev-packages]
+pylint = "<2.0.0"
 
 [packages]
 pyyaml = "*"
