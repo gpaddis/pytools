@@ -4,10 +4,12 @@ verify_ssl = true
 url = "https://pypi.org/simple"
 
 [requires]
-python_version = "2.7"
+python_version = "3.5"
 
 [dev-packages]
-pylint = "<2.0.0"
+pylint = "*"
+"autopep8" = "*"
 
 [packages]
 pyyaml = "*"
+mysql-connector-python = "*"
