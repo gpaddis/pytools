@@ -13,3 +13,4 @@ pylint = "*"
 [packages]
 pyyaml = "*"
 mysql-connector-python = "*"
+pymysql = "*"
