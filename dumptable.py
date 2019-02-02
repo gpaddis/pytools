@@ -7,12 +7,24 @@ import yaml
 from pymysql import connect
 from pymysql.cursors import DictCursorMixin, Cursor
 
+try:
+    from yaml import CLoader as Loader, CDumper as Dumper
+except ImportError:
+    from yaml import Loader, Dumper
+from yaml.representer import SafeRepresenter
+_mapping_tag = yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG
 
-class OrderedDictCursor(DictCursorMixin, Cursor):
-    dict_type = OrderedDict
+def dict_representer(dumper, data):
+    return dumper.represent_dict(data.items())
+
+def dict_constructor(loader, node):
+    return OrderedDict(loader.construct_pairs(node))
 
 def fetch_table(host, user, passw, dbname, dbtable):
     "Fetch all entries from a database table."
+    class OrderedDictCursor(DictCursorMixin, Cursor):
+        dict_type = OrderedDict
+
     conn = connect(user=user, password=passw, host=host, database=dbname)
     cursor = conn.cursor(OrderedDictCursor)
     cursor.execute("SELECT * FROM %s" % dbtable)
@@ -29,13 +41,17 @@ def dump_to_csv(data, csvFile):
         writer.writerows(data)
 
 def dump_to_yaml(data, yamlFile):
-    "Dump the data to a yaml file"
+    """
+    Dump the data to a yaml file.
+    See: https://gist.github.com/oglops/c70fb69eef42d40bed06
+    """
     def noop(self, *args, **kw):
         "Don't emit tags: see https://stackoverflow.com/a/48823424/7874784"
         pass
     yaml.emitter.Emitter.process_tag = noop
-    yaml.add_representer(
-        dict, lambda self, data: yaml.representer.SafeRepresenter.represent_dict(self, data.items()))
+    Dumper.add_representer(OrderedDict, dict_representer)
+    Loader.add_constructor(_mapping_tag, dict_constructor)
+    Dumper.add_representer(str, SafeRepresenter.represent_str)
     with open(yamlFile, 'w') as outfile:
         outfile.writelines(yaml.dump(data, default_flow_style=False))
 
